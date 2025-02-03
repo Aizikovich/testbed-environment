@@ -113,8 +113,8 @@ def run_simulator(env: Environment, iterations=200, malicious_cell=0, hopskip=1)
         cell_count = pd.concat([cell_count, count_users_for_bs(env, idx=i)])
 
         logger.info(f"Step {i} completed")
-    df.to_csv(f"csv_reports/simulation_report_{name}.csv")
-    cell_count.to_csv(f"csv_reports/cell_count_{name}.csv")
+    # df.to_csv(f"csv_reports/simulation_report_{name}.csv")
+    # cell_count.to_csv(f"csv_reports/cell_count_{name}.csv")
     logger.info("Simulation completed data saved to csv_reports folder")
 
     simulation_complete.set()
