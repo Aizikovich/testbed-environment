@@ -1,6 +1,6 @@
 Flask==2.1.0
 influxdb==5.3.1
 pandas==1.3.5
-mdclogpy==0.1.0
+mdclogpy==1.1.4
 requests==2.26.0
 configparser==5.2.0

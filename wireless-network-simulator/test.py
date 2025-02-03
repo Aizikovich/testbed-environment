@@ -49,7 +49,8 @@ def init_network():
                                            bs_parm[i]["numerology"], bs_parm[i]["max_bitrate"], bs_parm[i]["power"],
                                            bs_parm[i]["gain"], bs_parm[i]["loss"]))
 
-    env.plot_topology(only_save=False, title="Network Topology")
+    env.plot_topology(only_save=True, title="Network Topology")
+    plt.close()
 
     counter = 0
     logger.info("Connecting UEs to the best BS")
@@ -89,7 +90,7 @@ def run_simulator(env: Environment, iterations=200, malicious_cell=0, hopskip=1)
     for i in range(iterations):
         env.step()
         # anomaly = random_anomaly(env)
-        env.plot_topology(only_save=False, title=f"Network Topology {i}")
+        env.plot_topology(only_save=True, title=f"Network Topology {i}")
         plt.close()
         for ue in env.ue_list.values():
             if ue.get_current_bs() not in env.compute_rsrp(ue):
