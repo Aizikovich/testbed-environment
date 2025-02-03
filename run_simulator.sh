@@ -35,7 +35,7 @@ sleep 3
 ./deploy_xapps.sh
 echo "xApps have been deployed."
 # run simulator
-cd testbed_environment
+cd wireless-network-simulator
 python3 test.py --iter $ITER --mali_cell $MALI_CELL --seed $SEED
 cd ../
 
