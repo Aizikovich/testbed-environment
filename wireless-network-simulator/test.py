@@ -104,7 +104,8 @@ def run_simulator(env: Environment, iterations=200, malicious_cell=0, hopskip=1)
 
         # report KPIs
         report_ue_metrics(env.ue_list, env, None, i)
-        report_cell_metrics(env.bs_list, env, step=i, attack_rate=20.0)
+        # report_cell_metrics(env.bs_list, env, step=i, attack_rate=20.0)
+        report_cell_metrics(env.bs_list, step=i)
 
         # concat the reports from each step
         df = pd.concat([df, simulation_report(env)])
