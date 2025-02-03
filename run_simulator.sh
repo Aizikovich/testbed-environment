@@ -60,7 +60,7 @@ cd ../../
 # kill $INSERT_INSERT_CELL_PID
 # kill $SIMULATOR_UE_PID
 
-cd ~
+#cd ~
 ./uninstall.sh
 
 echo "Both Flask apps have been terminated."
