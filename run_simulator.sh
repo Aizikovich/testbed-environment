@@ -18,7 +18,7 @@ cd writer/src
 python3 ue.py &
 INSERT_UE_PID=$!S
 echo "insert.py ue pid: $INSERT_UE_PID"
-cd PTH
+cd $PTH
 
 sleep 3
 
@@ -27,7 +27,7 @@ cd writer/src
 python3 cell.py &
 INSERT_CELL_PID=$!
 echo "insert.py cell pid: $INSERT_CELL_PID"
-cd PTH
+cd $PTH
 
 sleep 3
 
@@ -37,7 +37,7 @@ echo "xApps have been deployed."
 # run simulator
 cd wireless-network-simulator
 python3 test.py --iter $ITER --seed $SEED
-cd PTH
+cd $PTH
 
 echo "simulator pid: $SIMULATOR_PID"
 
@@ -55,7 +55,7 @@ echo "simulator pid: $SIMULATOR_PID"
 cd writer/src
 pkill -f "python3 ue.py"
 pkill -f "python3 cell.py"
-cd PTH
+cd $PTH
 
 # kill $INSERT_INSERT_CELL_PID
 # kill $SIMULATOR_UE_PID
