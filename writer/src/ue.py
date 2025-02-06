@@ -1,293 +1,237 @@
-# # ==================================================================================
-# #  Copyright (c) 2020 HCL Technologies Limited.
-# #
-# #  Licensed under the Apache License, Version 2.0 (the "License");
-# #  you may not use this file except in compliance with the License.
-# #  You may obtain a copy of the License at
-# #
-# #     http://www.apache.org/licenses/LICENSE-2.0
-# #
-# #  Unless required by applicable law or agreed to in writing, software
-# #  distributed under the License is distributed on an "AS IS" BASIS,
-# #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# #  See the License for the specific language governing permissions and
-# #  limitations under the License.
-# # ==================================================================================
+# ==================================================================================
+#  Copyright (c) 2020 HCL Technologies Limited.
 #
-# """
-# This Module is temporary for pushing data into influxdb before dpeloyment of AD xApp. It will depreciated in future, when data will be coming through KPIMON
-# """
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
 #
-# import datetime
-# from flask import Flask, request
-# import time
-# import pandas as pd
-# from influxdb import DataFrameClient
-# from configparser import ConfigParser
-# from mdclogpy import Logger
-# from influxdb.exceptions import InfluxDBClientError, InfluxDBServerError
-# from requests.exceptions import RequestException, ConnectionError
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
-#
-# app = Flask(__name__)
-#
-#
-#
-# logger = Logger(name=__name__)
-#
-#
-# class DATABASE(object):
-#     r""" DATABASE takes an input as database name. It creates a client connection
-#       to influxDB and It reads/ writes UE data for a given dabtabase and a measurement.
-#
-#
-#     Parameters
-#     ----------
-#     host: str (default='r4-influxdb.ricplt.svc.cluster.local')
-#         hostname to connect to InfluxDB
-#     port: int (default='8086')
-#         port to connect to InfluxDB
-#     username: str (default='root')
-#         user to connect
-#     password: str (default='root')
-#         password of the use
-#
-#     Attributes
-#     ----------
-#     client: influxDB client
-#         DataFrameClient api to connect influxDB
-#     data: DataFrame
-#         fetched data from database
-#     """
-#
-#     def __init__(self, dbname='Timeseries', user='root', password='root', host="r4-influxdb.ricplt", port='8086', path='', ssl=False):
-#         self.data = None
-#         self.host = host
-#         self.port = port
-#         self.user = user
-#         self.password = password
-#         self.path = path
-#         self.ssl = ssl
-#         self.dbname = dbname
-#         self.client = None
-#         self.config()
-#
-#     def connect(self):
-#         if self.client is not None:
-#             self.client.close()
-#
-#         try:
-#             self.client = DataFrameClient(self.host, port=self.port, username=self.user, password=self.password, path=self.path, ssl=self.ssl, database=self.dbname, verify_ssl=self.ssl)
-#             version = self.client.request('ping', expected_response_code=204).headers['X-Influxdb-Version']
-#             logger.info("Conected to Influx Database, InfluxDB version : {}".format(version))
-#             return True
-#
-#         except (RequestException, InfluxDBClientError, InfluxDBServerError, ConnectionError):
-#             logger.error("Failed to establish a new connection with InflulxDB, Please check your url/hostname")
-#             time.sleep(120)
-#
-#     def read_data(self, train=False, valid=False, limit=False):
-#         """Read data method for a given measurement and limit
-#
-#         Parameters
-#         ----------
-#         meas: str (default='ueMeasReport')
-#         limit:int (defualt=False)
-#         """
-#         self.data = None
-#         query = 'select * from ' + self.meas
-#         if not train and not valid and not limit:
-#             query += ' where time>now()-1600ms'
-#         elif train:
-#             query += ' where time<now()-5m and time>now()-75m'
-#         elif valid:
-#             query += ' where time>now()-5m'
-#         elif limit:
-#             query += ' where time>now()-1m limit '+str(limit)
-#         result = self.query(query)
-#         if result and len(result[self.meas]) != 0:
-#             self.data = result[self.meas]
-#
-#     def write_anomaly(self, df, meas='AD'):
-#         """Write data method for a given measurement
-#
-#         Parameters
-#         ----------
-#         meas: str (default='AD')
-#         """
-#         try:
-#             self.client.write_points(df, meas)
-#             print(f"In database.py write_anomaly function. write {len(df)} points to {meas} measurement")
-#         except (RequestException, InfluxDBClientError, InfluxDBServerError) as e:
-#             logger.error('Failed to send metrics to influxdb')
-#             print(e)
-#
-#     def query(self, query):
-#         try:
-#             result = self.client.query(query)
-#         except (RequestException, InfluxDBClientError, InfluxDBServerError, ConnectionError) as e:
-#             logger.error('Failed to connect to influxdb: {}'.format(e))
-#             result = False
-#         return result
-#
-#     def config(self):
-#         cfg = ConfigParser()
-#         cfg.read('ad_config.ini')
-#         for section in cfg.sections():
-#             if section == 'influxdb':
-#                 self.host = cfg.get(section, "host")
-#                 self.port = cfg.get(section, "port")
-#                 self.user = cfg.get(section, "user")
-#                 self.password = cfg.get(section, "password")
-#                 self.path = cfg.get(section, "path")
-#                 self.ssl = cfg.get(section, "ssl")
-#                 self.dbname = cfg.get(section, "database")
-#                 self.meas = cfg.get(section, "measurement")
-#
-#             if section == 'features':
-#                 self.thpt = cfg.get(section, "thpt")
-#                 self.rsrp = cfg.get(section, "rsrp")
-#                 self.rsrq = cfg.get(section, "rsrq")
-#                 self.rssinr = cfg.get(section, "rssinr")
-#                 self.prb = cfg.get(section, "prb_usage")
-#                 self.ue = cfg.get(section, "ue")
-#                 self.anomaly = cfg.get(section, "anomaly")
-#                 self.a1_param = cfg.get(section, "a1_param")
-#
-#
-#
-#
-#
-# class INSERTDATA(DATABASE):
-#
-#     def __init__(self):
-#         super().__init__()
-#         self.config()
-#         self.connect()
-#         self.dropdb('RIC-Test')
-#         self.createdb('RIC-Test')
-#
-#     def config(self):
-#         cfg = ConfigParser()
-#         cfg.read('ad_config.ini')
-#         for section in cfg.sections():
-#             if section == 'influxdb':
-#                 self.host = cfg.get(section, "host")
-#                 self.port = cfg.get(section, "port")
-#                 self.user = cfg.get(section, "user")
-#                 self.password = cfg.get(section, "password")
-#                 self.path = cfg.get(section, "path")
-#                 self.ssl = cfg.get(section, "ssl")
-#                 self.dbname = cfg.get(section, "database")
-#                 self.meas = cfg.get(section, "measurement")
-#
-#     def createdb(self, dbname):
-#         print("Create database: " + dbname)
-#         self.client.create_database(dbname)
-#         self.client.switch_database(dbname)
-#
-#     def dropdb(self, dbname):
-#         print("DROP database: " + dbname)
-#         self.client.drop_database(dbname)
-#
-#     def dropmeas(self, measname):
-#         print("DROP MEASUREMENT: " + measname)
-#         self.client.query('DROP MEASUREMENT '+measname)
-#
-#     def assign_timestamp(self, data):
-#         df = pd.DataFrame(data)
-#         # time.sleep(1)  # Simulate a delay
-#         steps = df['measTimeStampRf'].unique()
-#         steps = df['measTimeStampRf'].unique()
-#         for timestamp in steps:
-#             d = df[df['measTimeStampRf'] == timestamp]
-#             d.index = pd.date_range(start=datetime.datetime.now(), freq='1ms', periods=len(d))
-#             self.client.write_points(d, self.meas)
-#             time.sleep(0.7)
-#
-#
-# def populatedb():
-#     # inintiate connection and create database UEDATA
-#     db = INSERTDATA()
-#     df = pd.read_csv('ue.csv')
-#     while True:
-#         db.assign_timestamp(df)
-#
-# @app.route('/receive_ue', methods=['POST'])
-# def receive_ue():
-#     try:
-#         received_data = request.json
-#         if received_data is not None:
-#             ue_db.assign_timestamp(received_data)
-#             received_data = None
-#         else:
-#             print("No UE data received", flush=True)
-#             time.sleep(1)
-#         return "UE Data received successfully!"
-#
-#     except Exception as e:
-#         print("Error:", e, flush=True)
-#         return "Error occurred while receiving UE data"
-#
-#
-# if __name__ == "__main__":
-#     ue_db = INSERTDATA()
-#     app.run(host="0.0.0.0", port=5001, threaded=True)  # Different port than the other receiver
-from flask import Flask, request
-import pandas as pd
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+# ==================================================================================
+
+"""
+This Module is temporary for pushing data into influxdb before dpeloyment of AD xApp. It will depreciated in future, when data will be coming through KPIMON
+"""
+
 import datetime
+from flask import Flask, request
 import time
-from database_handler import DATABASE
+import pandas as pd
+from influxdb import DataFrameClient
+from configparser import ConfigParser
+from mdclogpy import Logger
+from influxdb.exceptions import InfluxDBClientError, InfluxDBServerError
+from requests.exceptions import RequestException, ConnectionError
+
 
 app = Flask(__name__)
 
 
-class UEDatabase(DATABASE):
+
+logger = Logger(name=__name__)
+
+
+class DATABASE(object):
+    r""" DATABASE takes an input as database name. It creates a client connection
+      to influxDB and It reads/ writes UE data for a given dabtabase and a measurement.
+
+
+    Parameters
+    ----------
+    host: str (default='r4-influxdb.ricplt.svc.cluster.local')
+        hostname to connect to InfluxDB
+    port: int (default='8086')
+        port to connect to InfluxDB
+    username: str (default='root')
+        user to connect
+    password: str (default='root')
+        password of the use
+
+    Attributes
+    ----------
+    client: influxDB client
+        DataFrameClient api to connect influxDB
+    data: DataFrame
+        fetched data from database
+    """
+
+    def __init__(self, dbname='Timeseries', user='root', password='root', host="r4-influxdb.ricplt", port='8086', path='', ssl=False):
+        self.data = None
+        self.host = host
+        self.port = port
+        self.user = user
+        self.password = password
+        self.path = path
+        self.ssl = ssl
+        self.dbname = dbname
+        self.client = None
+        self.config()
+
+    def connect(self):
+        if self.client is not None:
+            self.client.close()
+
+        try:
+            self.client = DataFrameClient(self.host, port=self.port, username=self.user, password=self.password, path=self.path, ssl=self.ssl, database=self.dbname, verify_ssl=self.ssl)
+            version = self.client.request('ping', expected_response_code=204).headers['X-Influxdb-Version']
+            logger.info("Conected to Influx Database, InfluxDB version : {}".format(version))
+            return True
+
+        except (RequestException, InfluxDBClientError, InfluxDBServerError, ConnectionError):
+            logger.error("Failed to establish a new connection with InflulxDB, Please check your url/hostname")
+            time.sleep(120)
+
+    def read_data(self, train=False, valid=False, limit=False):
+        """Read data method for a given measurement and limit
+
+        Parameters
+        ----------
+        meas: str (default='ueMeasReport')
+        limit:int (defualt=False)
+        """
+        self.data = None
+        query = 'select * from ' + self.meas
+        if not train and not valid and not limit:
+            query += ' where time>now()-1600ms'
+        elif train:
+            query += ' where time<now()-5m and time>now()-75m'
+        elif valid:
+            query += ' where time>now()-5m'
+        elif limit:
+            query += ' where time>now()-1m limit '+str(limit)
+        result = self.query(query)
+        if result and len(result[self.meas]) != 0:
+            self.data = result[self.meas]
+
+    def write_anomaly(self, df, meas='AD'):
+        """Write data method for a given measurement
+
+        Parameters
+        ----------
+        meas: str (default='AD')
+        """
+        try:
+            self.client.write_points(df, meas)
+            print(f"In database.py write_anomaly function. write {len(df)} points to {meas} measurement")
+        except (RequestException, InfluxDBClientError, InfluxDBServerError) as e:
+            logger.error('Failed to send metrics to influxdb')
+            print(e)
+
+    def query(self, query):
+        try:
+            result = self.client.query(query)
+        except (RequestException, InfluxDBClientError, InfluxDBServerError, ConnectionError) as e:
+            logger.error('Failed to connect to influxdb: {}'.format(e))
+            result = False
+        return result
+
+    def config(self):
+        cfg = ConfigParser()
+        cfg.read('ad_config.ini')
+        for section in cfg.sections():
+            if section == 'influxdb':
+                self.host = cfg.get(section, "host")
+                self.port = cfg.get(section, "port")
+                self.user = cfg.get(section, "user")
+                self.password = cfg.get(section, "password")
+                self.path = cfg.get(section, "path")
+                self.ssl = cfg.get(section, "ssl")
+                self.dbname = cfg.get(section, "database")
+
+            if section == 'measurements':
+                self.meas = cfg.get(section, "ue_reports")
+
+            if section == 'ue_features':
+                self.thpt = cfg.get(section, "thpt")
+                self.rsrp = cfg.get(section, "rsrp")
+                self.rsrq = cfg.get(section, "rsrq")
+                self.rssinr = cfg.get(section, "rssinr")
+                self.prb = cfg.get(section, "prb_usage")
+                self.ue = cfg.get(section, "ue")
+                self.anomaly = cfg.get(section, "anomaly")
+                self.a1_param = cfg.get(section, "a1_param")
+
+
+
+
+
+class INSERTDATA(DATABASE):
+
     def __init__(self):
         super().__init__()
         self.config()
         self.connect()
+        self.dropdb('RIC-Test')
+        self.createdb('RIC-Test')
 
     def config(self):
-        super().config()
         cfg = ConfigParser()
-        cfg.read('config.ini')
+        cfg.read('ad_config.ini')
+        for section in cfg.sections():
+            if section == 'influxdb':
+                self.host = cfg.get(section, "host")
+                self.port = cfg.get(section, "port")
+                self.user = cfg.get(section, "user")
+                self.password = cfg.get(section, "password")
+                self.path = cfg.get(section, "path")
+                self.ssl = cfg.get(section, "ssl")
+                self.dbname = cfg.get(section, "database")
+                self.meas = cfg.get(section, "measurement")
 
-        if 'ue_features' in cfg.sections():
-            self.thpt = cfg.get('ue_features', 'thpt')
-            self.rsrp = cfg.get('ue_features', 'rsrp')
-            self.rsrq = cfg.get('ue_features', 'rsrq')
-            self.rssinr = cfg.get('ue_features', 'rssinr')
-            self.prb_usage = cfg.get('ue_features', 'prb_usage')
-            self.anomaly = cfg.get('ue_features', 'anomaly')
-            self.a1_param = cfg.get('ue_features', 'a1_param')
+    def createdb(self, dbname):
+        print("Create database: " + dbname)
+        self.client.create_database(dbname)
+        self.client.switch_database(dbname)
+
+    def dropdb(self, dbname):
+        print("DROP database: " + dbname)
+        self.client.drop_database(dbname)
+
+    def dropmeas(self, measname):
+        print("DROP MEASUREMENT: " + measname)
+        self.client.query('DROP MEASUREMENT '+measname)
 
     def assign_timestamp(self, data):
         df = pd.DataFrame(data)
+        # time.sleep(1)  # Simulate a delay
+        steps = df['measTimeStampRf'].unique()
         steps = df['measTimeStampRf'].unique()
         for timestamp in steps:
             d = df[df['measTimeStampRf'] == timestamp]
             d.index = pd.date_range(start=datetime.datetime.now(), freq='1ms', periods=len(d))
-            self.client.write_points(d, self.ue_meas)
+            self.client.write_points(d, self.meas)
             time.sleep(0.7)
 
+
+def populatedb():
+    # inintiate connection and create database UEDATA
+    db = INSERTDATA()
+    df = pd.read_csv('ue.csv')
+    while True:
+        db.assign_timestamp(df)
 
 @app.route('/receive_ue', methods=['POST'])
 def receive_ue():
     try:
         received_data = request.json
         if received_data is not None:
-            db.assign_timestamp(received_data)
+            ue_db.assign_timestamp(received_data)
             received_data = None
         else:
             print("No UE data received", flush=True)
             time.sleep(1)
         return "UE Data received successfully!"
+
     except Exception as e:
-        print(f"Error: {e}", flush=True)
+        print("Error:", e, flush=True)
         return "Error occurred while receiving UE data"
 
 
 if __name__ == "__main__":
-    db = UEDatabase()
-    app.run(host="0.0.0.0", port=5001, threaded=True)
+    ue_db = INSERTDATA()
+    app.run(host="0.0.0.0", port=5001, threaded=True)  # Different port than the other receiver
