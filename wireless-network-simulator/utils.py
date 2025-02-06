@@ -1,10 +1,7 @@
 import json
-
 import pandas as pd
 import numpy as np
 import logging
-
-np.random.seed(42)
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG)
 
@@ -35,10 +32,7 @@ def handel_ts_control_msg(msg, env):
     ue = env.ue_list[ue_id]
     from_cell = msg["fromCell"]
     to_cell_id = int(msg["toCell"])
-    # to_cell = env.bs_list[to_cell_id]
-    # print(f"before handel \n{count_users_for_bs(env)}")
     result = ue.connect_bs(to_cell_id)
-    # print(f"after handel \n{count_users_for_bs(env)}")
     if result is None:
         logging.error(f"UE{ue_id} failed to connect to BS{to_cell_id}")
         logging.info(f"{ue} nb list: {env.compute_rsrp(ue)}")
@@ -52,7 +46,6 @@ def count_users_for_bs(env, idx=0):
         bs_users[f"BS{bs.bs_id}"] = 0
     for ue in env.ue_list.values():
         bs_users[f"BS{ue.get_current_bs()}"] += 1
-    # print(bs_users)
     return pd.DataFrame(bs_users, index=[idx])
 
 
@@ -70,6 +63,7 @@ def simulation_report(env):
 
 
 def random_anomaly(env):
+    np.random.seed(42)
     ue = np.random.choice(list(env.ue_list.values()))
     for _ in range(5):
         ue.move()

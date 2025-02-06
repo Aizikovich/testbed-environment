@@ -1,7 +1,6 @@
 import argparse
 import logging
 import os
-import json
 import signal
 from threading import Event, Thread
 import numpy.random as random
@@ -10,7 +9,7 @@ import matplotlib.pyplot as plt
 import requests
 from flask import Flask, request
 from api import report_ue_metrics, report_cell_metrics
-from utils import simulation_report, count_users_for_bs, handel_ts_control_msg, load_bs_config
+from utils import simulation_report, count_users_for_bs, handel_ts_control_msg, load_bs_config, random_anomaly
 from wns2.basestation.nrbasestation import NRBaseStation
 from wns2.userequipment.userequipment import UserEquipment
 from wns2.environment.environment import Environment
@@ -64,48 +63,34 @@ def init_network():
     return env
 
 
-def run_simulator(env: Environment, iterations=200, malicious_cell=0, hopskip=1):
-    name = f"malicious_cell_{malicious_cell}" if malicious_cell else "normal"
-    logger.info(f"Starting {name} simulation wit {iterations} steps ... Thread: {Thread.name}")
+def run_simulator(env: Environment, iterations=200, traffic_accelerator=True, anomaly=None):
+    name = 'wireless simulation'
+    logger.info(f"Starting {name} with {iterations} steps ... Thread: {Thread.name}")
 
-    # init the attacker
-    # if malicious_cell != 0:
-    #     attacker = [Attack(env.bs_list[i], env, attack_rate=10.0) for i in [malicious_cell]]
-    # else:
-    #     attacker = None
-    #
-    # if hopskip != 0:
-    #     print(
-    #         "HEREEEEE"
-    #     )
-    #     hsj_attack = HopAttack(malicious_cell, None)
-    # else:
-    #     hsj_attack = None
 
-    # print(env.compute_rsrp(env.ue_list[0]))
 
     df = simulation_report(env)
     cell_count = count_users_for_bs(env)
 
     for i in range(iterations):
         env.step()
-        # anomaly = random_anomaly(env)
         env.plot_topology(only_save=True, title=f"Network Topology {i}")
         plt.close()
+        anomaly = random_anomaly(env)
         for ue in env.ue_list.values():
             if ue.get_current_bs() not in env.compute_rsrp(ue):
                 curr_bs = ue.get_current_bs()
                 ue.connect_max_rsrp()
                 logger.info(f"UE{ue.ue_id} moved from BS{curr_bs} to BS{ue.get_current_bs()} *max RSRP*")
 
-        # if i >= 25:
-        #     report_ue_metrics(env.ue_list, env, anomaly, i)
-        # else:
-        #     report_ue_metrics(env.ue_list, env, None, i)
+        if traffic_accelerator:
+            if i >= 25:
+                report_ue_metrics(env.ue_list, env, anomaly, i)
+            else:
+                report_ue_metrics(env.ue_list, env, None, i)
+        else:
+            report_ue_metrics(env.ue_list, env, None, i)
 
-        # report KPIs
-        report_ue_metrics(env.ue_list, env, None, i)
-        # report_cell_metrics(env.bs_list, env, step=i, attack_rate=20.0)
         report_cell_metrics(env.bs_list, step=i)
 
         # concat the reports from each step
@@ -156,7 +141,6 @@ def receive():
 def parse_args():
     parser = argparse.ArgumentParser(description='Run network simulator with specified parameters')
     parser.add_argument('--iter', type=int, default=98, help='Number of iterations for the simulation')
-    parser.add_argument('--mali_cell', type=int, default=5, help='Index of malicious cell (if any)')
     parser.add_argument('--seed', type=int, default=78, help='Random seed for reproducibility')
 
     args = parser.parse_args()
@@ -166,20 +150,16 @@ def parse_args():
 if __name__ == '__main__':
     args = parse_args()
     iterations = args.iter
-    malicious_cell = args.mali_cell
     seed = args.seed
-    print(f"Starting simulation with {iterations} iterations and malicious cell {malicious_cell}")
+    print(f"Starting simulation with {iterations} iterations")
     # Set the random seed
     random.seed(seed)
     logger.info(f"Random seed set to: {seed}")
     env = init_network()
-
-    print(f"Starting simulation with {iterations} iterations and malicious cell {malicious_cell}")
-    ts_thread = Thread(target=run_simulator, args=(env, iterations, malicious_cell))
-    # ts_thread = Thread(target=run_simulator, args=(env, 5, 1))
+    logger.info("Network initialized successfully")
+    ts_thread = Thread(target=run_simulator, args=(env, iterations))
     ts_thread.start()
 
-    print("Starting Flask app")
     logger.info("Starting Flask app")
 
 
