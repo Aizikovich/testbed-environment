@@ -74,7 +74,7 @@ def run_simulator(env: Environment, iterations=200, traffic_accelerator=True, an
 
     for i in range(iterations):
         env.step()
-        env.plot_topology(only_save=True, title=f"Network Topology {i}")
+        env.plot_topology(only_save=False, title=f"Network Topology {i}")
         plt.close()
         anomaly = random_anomaly(env)
         for ue in env.ue_list.values():
