@@ -4,13 +4,15 @@ import json
 import logging
 import random
 import requests
+import os
+import csv
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG)
 
 
 # logging.getLogger()
 
-def report_ue_metrics(ues, env, anomaly_ue_id=-1, step=0):
+def report_ue_metrics(ues, env, anomaly_ue_id=-1, step=0, csv_folder='ue_reports_csv'):
     """
     ['DRB.UEThpDl', 'RF.serving.RSRP', 'RF.serving.RSSINR', 'RRU.PrbUsedDl', 'x', 'y']
     """
@@ -101,6 +103,19 @@ def report_ue_metrics(ues, env, anomaly_ue_id=-1, step=0):
 
         data.append(ue_report)
 
+    # Save network logs as CSV files 
+    if not os.path.exists(csv_folder):
+        os.makedirs(csv_folder)
+    csv_file = os.path.join(csv_folder, f"ue_reports_step_{step}.csv")
+
+    if data:
+        fieldnames = data[0].keys()
+        with open(csv_file, 'w', newline='') as file:
+            writer = csv.DictWriter(file, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(data)
+            
+
     ue_data = json.dumps(data)
     try:
         response = requests.post("http://127.0.0.1:5001/receive_ue", json=json.loads(ue_data))
@@ -110,7 +125,7 @@ def report_ue_metrics(ues, env, anomaly_ue_id=-1, step=0):
         # print(f"Error While sending UE data:\n{e}")
 
 
-def report_cell_metrics(bss_list, step=0):
+def report_cell_metrics(bss_list, step=0, csv_folder='cell_reports_csv'):
     data = []
     for j, (i, bs) in enumerate(bss_list.items()):
         actual_data_rate = bs.allocated_data_rate
@@ -130,8 +145,21 @@ def report_cell_metrics(bss_list, step=0):
             "measPeriodPdcpBytes": random.randint(1, 100)
         }
         data.append(cell_report)
-    cell_data = json.dumps(data)
 
+    # Save network logs as CSV files 
+    if not os.path.exists(csv_folder):
+        os.makedirs(csv_folder)
+    csv_file = os.path.join(csv_folder, f"cell_reports_step_{step}.csv")
+
+    if data:
+        fieldnames = data[0].keys()
+        with open(csv_file, 'w', newline='') as file:
+            writer = csv.DictWriter(file, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(data)
+
+
+    cell_data = json.dumps(data)
     try:
         response = requests.post('http://127.0.0.1:5002/receive_cell', json=json.loads(cell_data))
         return response

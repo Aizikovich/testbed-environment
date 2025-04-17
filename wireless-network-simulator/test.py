@@ -5,6 +5,8 @@ import signal
 from threading import Event, Thread
 import numpy.random as random
 import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import requests
 from flask import Flask, request
@@ -100,10 +102,10 @@ def run_simulator(env: Environment, iterations=200, traffic_accelerator=True, an
         logger.info(f"Step {i} completed")
     # df.to_csv(f"csv_reports/simulation_report_{name}.csv")
     # cell_count.to_csv(f"csv_reports/cell_count_{name}.csv")
-    logger.info("Simulation completed data saved to csv_reports folder")
+    # logger.info("Simulation completed data saved to csv_reports folder")
 
     simulation_complete.set()
-    os.kill(os.getpid(), signal.SIGINT)
+    # os.kill(os.getpid(), signal.SIGINT)
 
 
 def shutdown_server():
@@ -147,6 +149,7 @@ def parse_args():
     return args
 
 
+
 if __name__ == '__main__':
     args = parse_args()
     iterations = args.iter
@@ -171,7 +174,7 @@ if __name__ == '__main__':
     flask_thread.start()
     simulation_complete.wait()
 
-    requests.post('http://0.0.0.0:80/shutdown')
+    requests.post('http://127.0.0.1:80/shutdown')
     ts_thread.join()
     flask_thread.join()
     print("Application terminated")
