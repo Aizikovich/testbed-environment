@@ -1,0 +1,25 @@
+[project]
+name = "oran_system"
+version = "0.1.0"
+description = "oran-system using crewAI"
+authors = [{ name = "Your Name", email = "you@example.com" }]
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "crewai[tools]>=0.114.0,<1.0.0",
+    "onnxruntime>=1.21.1",
+    "termcolor>=3.0.1",
+]
+
+[project.scripts]
+oran_system = "oran_system.main:run"
+run_crew = "oran_system.main:run"
+train = "oran_system.main:train"
+replay = "oran_system.main:replay"
+test = "oran_system.main:test"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.crewai]
+type = "crew"

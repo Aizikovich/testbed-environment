@@ -1,0 +1,51 @@
+analyze_query_task:
+  description: >
+    Analyze the user's query about O-RAN network performance. Identify what they want to know about the network.
+    
+    Specifically:
+    1. What network metrics or information are they interested in? (cell load, user connections, signal quality, etc.)
+    2. Which specific step or time period are they asking about?
+    3. Are they asking about specific cells or users?
+    
+    Formulate a clear, specific question for the Data Analyst.
+    
+    The user query is: {query}
+  expected_output: >
+    A clear, specific question for the Data Analyst that identifies:
+    1. The specific metrics or data needed
+    2. The step number
+    3. Any specific cells or UEs mentioned
+  agent: query_analyzer
+
+analyze_data_task:
+  description: >
+    Using the FileReadTool, search through the O-RAN data to find the specific information
+    requested in the query analysis.
+    
+    Be thorough in your analysis and provide specific data from the O-RAN logs that directly
+    answers the query. Include relevant metrics and their values.
+    
+    Make sure to filter for the specific step mentioned in the query.
+    
+    The query analysis is: {query_analysis}
+  expected_output: >
+    Detailed findings from the O-RAN data, including specific metrics,
+    values, and any relevant context about the network performance.
+  agent: data_analyst
+
+formulate_response_task:
+  description: >
+    Create a clear, concise response that answers the user's original question about the O-RAN network.
+    
+    Your response should:
+    1. Directly answer the user's question
+    2. Explain any technical terms in simple language
+    3. Provide context about why the information is important
+    4. Be concise and easy to understand
+    
+    Original query: {query}
+    Data analysis results: {data_analysis}
+  expected_output: >
+    A clear, concise response that directly answers the user's question about
+    the O-RAN network in easy-to-understand language.
+  agent: response_formulator
