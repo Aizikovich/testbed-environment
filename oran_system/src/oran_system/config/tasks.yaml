@@ -4,7 +4,7 @@ analyze_query_task:
     
     Specifically:
     1. What network metrics or information are they interested in? (cell load, user connections, signal quality, etc.)
-    2. Which specific step or time period are they asking about?
+    2. Which specific step or time period are they asking abo ut?
     3. Are they asking about specific cells or users?
     
     Formulate a clear, specific question for the Data Analyst.
@@ -16,26 +16,39 @@ analyze_query_task:
     2. The step number
     3. Any specific cells or UEs mentioned
   agent: query_analyzer
+  # output_key: analyze_query_task_output
 
 analyze_data_task:
   description: >
-    Using the FileReadTool, search through the O-RAN data to find the specific information
-    requested in the query analysis.
+    Using the DirectoryReadTool, first identify all available data files in the O-RAN data directory.
+    Then, using the FileReadTool, read and analyze specific files based on the query requirements.
+
+    You'll receive the output from the Query Analyzer task, which contains a clear question about
+    the network metrics to analyze. Use this analysis to guide your file selection and data examination.
     
+    Process for analysis:
+    1. List all available files using DirectoryReadTool
+    2. Identify which files contain data relevant to the query (based on step numbers and file names)
+    3. Read the contents of these specific files using FileReadTool
+    4. Extract and analyze the metrics that directly address the query
+
     Be thorough in your analysis and provide specific data from the O-RAN logs that directly
     answers the query. Include relevant metrics and their values.
     
     Make sure to filter for the specific step mentioned in the query.
-    
-    The query analysis is: {query_analysis}
   expected_output: >
     Detailed findings from the O-RAN data, including specific metrics,
     values, and any relevant context about the network performance.
   agent: data_analyst
+  context: [analyze_query_task]
 
 formulate_response_task:
   description: >
     Create a clear, concise response that answers the user's original question about the O-RAN network.
+
+    You have two key inputs for this task:
+    1. The original user query: {query}
+    2. The detailed findings from the Data Analyst task, which contains metrics, values, and context about the O-RAN network data.
     
     Your response should:
     1. Directly answer the user's question
@@ -43,9 +56,9 @@ formulate_response_task:
     3. Provide context about why the information is important
     4. Be concise and easy to understand
     
-    Original query: {query}
-    Data analysis results: {data_analysis}
+    Remember to reference both the user's original intent from their query and the specific data findings from the analysis.
   expected_output: >
     A clear, concise response that directly answers the user's question about
     the O-RAN network in easy-to-understand language.
   agent: response_formulator
+  context: [analyze_data_task]

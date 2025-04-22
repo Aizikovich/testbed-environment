@@ -1,6 +1,9 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from crewai.tools import FileReadTool
+from crewai_tools import DirectoryReadTool, FileReadTool
+from dotenv import load_dotenv
+import os
+
 
 @CrewBase
 class OranSystem():
@@ -10,25 +13,25 @@ class OranSystem():
 
     # Initialize tools
     def __init__(self):
-        self.file_tool = FileReadTool(
-            file_paths=["./wireless-network-simulator/cell_reports_csv", "./wireless-network-simulator/ue_reports_csv"]
-        )
+        load_dotenv()
+        self.directoryTool = DirectoryReadTool (directory=os.getenv("FOLDER_PATH"))
+        self.fileReadTool = FileReadTool()
 
     @agent
     def query_analyzer(self) -> Agent:
         return Agent(
             config=self.agents_config['query_analyzer'],
             verbose=True,
-            llm="gpt-4o-mini"
+            #llm="gpt-4o-mini"
         )
 
     @agent
     def data_analyst(self) -> Agent:
         return Agent(
             config=self.agents_config['data_analyst'],
-            tools=[self.file_tool],
+            tools=[self.directoryTool, self.fileReadTool],
             verbose=True,
-            llm="gpt-4o-mini"
+            #llm="gpt-4o-mini"
         )
     
     @agent
@@ -36,7 +39,7 @@ class OranSystem():
         return Agent(
             config=self.agents_config['response_formulator'],
             verbose=True,
-            llm="gpt-4o-mini"
+            #llm="gpt-4o-mini"
         )
 
     @task
@@ -65,5 +68,5 @@ class OranSystem():
             agents=self.agents,
             tasks=self.tasks,
             process=Process.sequential,
-            verbose=2
+            verbose=True
         )
