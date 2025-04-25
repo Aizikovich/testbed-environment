@@ -1,6 +1,7 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import DirectoryReadTool, FileReadTool
+from oran_system.tools.custom_tool import CsvReaderTool
 from dotenv import load_dotenv
 import os
 
@@ -15,31 +16,29 @@ class OranSystem():
     def __init__(self):
         load_dotenv()
         self.directoryTool = DirectoryReadTool (directory=os.getenv("FOLDER_PATH"))
+        self.csvReaderTool = CsvReaderTool()
         self.fileReadTool = FileReadTool()
 
     @agent
     def query_analyzer(self) -> Agent:
         return Agent(
             config=self.agents_config['query_analyzer'],
-            verbose=True,
-            #llm="gpt-4o-mini"
+            verbose=True
         )
 
     @agent
     def data_analyst(self) -> Agent:
         return Agent(
             config=self.agents_config['data_analyst'],
-            tools=[self.directoryTool, self.fileReadTool],
-            verbose=True,
-            #llm="gpt-4o-mini"
+            tools=[self.directoryTool, self.csvReaderTool],
+            verbose=True
         )
     
     @agent
     def response_formulator(self) -> Agent:
         return Agent(
             config=self.agents_config['response_formulator'],
-            verbose=True,
-            #llm="gpt-4o-mini"
+            verbose=True
         )
 
     @task
@@ -58,7 +57,6 @@ class OranSystem():
     def formulate_response_task(self) -> Task:
         return Task(
             config=self.tasks_config['formulate_response_task'],
-            # output_file='oran_analysis_report.md'
         )
 
     @crew

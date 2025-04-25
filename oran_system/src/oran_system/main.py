@@ -41,16 +41,6 @@ def run(query=None):
         print()
         cprint(response, 'green')
 
-    # inputs = {
-    #     'query': query if query is not None else "Which users have poor signal quality in step 3?"
-    # } 
-
-    # try:
-    #     result = OranSystem().crew().kickoff(inputs=inputs)
-    #     return result
-    # except Exception as e:
-    #     raise Exception(f"An error occurred while running the crew: {e}")
-
 def clear_screen():
     """Clear the terminal screen"""
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -83,41 +73,3 @@ def print_help():
     for example in examples:
         cprint(f"  • {example}", 'yellow')
     print()
-
-
-# def train():
-#     """
-#     Train the crew for a given number of iterations.
-#     """
-#     inputs = {
-#         "topic": "AI LLMs"
-#     }
-#     try:
-#         OranSystem().crew().train(n_iterations=int(sys.argv[1]), filename=sys.argv[2], inputs=inputs)
-
-#     except Exception as e:
-#         raise Exception(f"An error occurred while training the crew: {e}")
-
-# def replay():
-#     """
-#     Replay the crew execution from a specific task.
-#     """
-#     try:
-#         OranSystem().crew().replay(task_id=sys.argv[1])
-
-#     except Exception as e:
-#         raise Exception(f"An error occurred while replaying the crew: {e}")
-
-# def test():
-#     """
-#     Test the crew execution and returns the results.
-#     """
-#     inputs = {
-#         "topic": "AI LLMs",
-#         "current_year": str(datetime.now().year)
-#     }
-#     try:
-#         OranSystem().crew().test(n_iterations=int(sys.argv[1]), openai_model_name=sys.argv[2], inputs=inputs)
-
-#     except Exception as e:
-#         raise Exception(f"An error occurred while testing the crew: {e}")

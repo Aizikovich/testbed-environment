@@ -16,28 +16,39 @@ analyze_query_task:
     2. The step number
     3. Any specific cells or UEs mentioned
   agent: query_analyzer
-  # output_key: analyze_query_task_output
 
 analyze_data_task:
   description: >
-    Using the DirectoryReadTool, first identify all available data files in the O-RAN data directory.
-    Then, using the FileReadTool, read and analyze specific files based on the query requirements.
+    Use the DirectoryReadTool and CsvReaderTool to analyze O-RAN network data based on the query requirements.
 
     You'll receive the output from the Query Analyzer task, which contains a clear question about
     the network metrics to analyze. Use this analysis to guide your file selection and data examination.
     
     Process for analysis:
-    1. List all available files using DirectoryReadTool
-    2. Identify which files contain data relevant to the query (based on step numbers and file names)
-    3. Read the contents of these specific files using FileReadTool
-    4. Extract and analyze the metrics that directly address the query
-
+    1. Use DirectoryReadTool to identify available data files
+    2. Select the relevant files based on:
+       - File type (ue_reports for user data, cell_reports for cell data)
+       - Step number mentioned in the query
+    3. Use CsvReaderTool to read the contents of these files
+    4. Process the JSON data returned by CsvReaderTool by:
+       - First examine the "data" field which contains all records
+       - Process ALL records - make sure you don't miss any entries
+       - Apply filtering precisely as follows:
+        * For "which users are connected to cell X" queries: filter where nrCellIdentity EQUALS X
+        * Always use exact equality comparison (==) not substring matching
+        * Always check EVERY record in the dataset
+       - Count the total records that match your criteria as a verification step
+    
+    CRITICAL FIELD MATCHING RULES:
+    - When determining which UEs are connected to a specific cell, ONLY use the nrCellIdentity field
+    - Do NOT use nbCellIdentity_0 through nbCellIdentity_4 for determining connections - these are only neighboring cells
+    - Pay extremely close attention to field names and follow the O-RAN Network Metrics Guide precisely
+    - Ensure you report ALL matching users, not just a sample
+    
     Be thorough in your analysis and provide specific data from the O-RAN logs that directly
     answers the query. Include relevant metrics and their values.
-    
-    Make sure to filter for the specific step mentioned in the query.
   expected_output: >
-    Detailed findings from the O-RAN data, including specific metrics,
+   Detailed findings from the O-RAN data, including specific metrics,
     values, and any relevant context about the network performance.
   agent: data_analyst
   context: [analyze_query_task]
@@ -52,13 +63,13 @@ formulate_response_task:
     
     Your response should:
     1. Directly answer the user's question
-    2. Explain any technical terms in simple language
+    2. Shortly explain any technical terms in simple language
     3. Provide context about why the information is important
     4. Be concise and easy to understand
     
     Remember to reference both the user's original intent from their query and the specific data findings from the analysis.
   expected_output: >
-    A clear, concise response that directly answers the user's question about
+    A clear, concise and short response that directly answers the user's question about
     the O-RAN network in easy-to-understand language.
   agent: response_formulator
   context: [analyze_data_task]

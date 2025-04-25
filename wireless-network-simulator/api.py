@@ -110,6 +110,13 @@ def report_ue_metrics(ues, env, anomaly_ue_id=-1, step=0, csv_folder='ue_reports
 
     if data:
         fieldnames = data[0].keys()
+
+        # Fill empty values with "Null"
+        for row in data:
+            for key in fieldnames:
+                if row[key] is None or row[key] == "":
+                    row[key] = "Null"
+
         with open(csv_file, 'w', newline='') as file:
             writer = csv.DictWriter(file, fieldnames=fieldnames)
             writer.writeheader()
