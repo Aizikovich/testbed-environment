@@ -24,32 +24,27 @@ analyze_data_task:
     You'll receive the output from the Query Analyzer task, which contains a clear question about
     the network metrics to analyze. Use this analysis to guide your file selection and data examination.
     
-    Process for analysis:
+    Analysis Process:
     1. Use DirectoryReadTool to identify available data files
     2. Select the relevant files based on:
        - File type (ue_reports for user data, cell_reports for cell data)
        - Step number mentioned in the query
-    3. Use CsvReaderTool to read the contents of these files
-    4. Process the JSON data returned by CsvReaderTool by:
-       - First examine the "data" field which contains all records
-       - Process ALL records - make sure you don't miss any entries
-       - Apply filtering precisely as follows:
-        * For "which users are connected to cell X" queries: filter where nrCellIdentity EQUALS X
-        * Always use exact equality comparison (==) not substring matching
-        * Always check EVERY record in the dataset
-       - Count the total records that match your criteria as a verification step
+    3. Use CsvQueryTool to extract and filter data with appropriate pandas queries
+      - Construct queries that precisely match the requested metrics
+      - Use multiple queries if needed to get complete results
     
     CRITICAL FIELD MATCHING RULES:
-    - When determining which UEs are connected to a specific cell, ONLY use the nrCellIdentity field
-    - Do NOT use nbCellIdentity_0 through nbCellIdentity_4 for determining connections - these are only neighboring cells
+    - nrCellIdentity: The cell ID that the UE is ACTIVELY CONNECTED TO
+    - nbCellIdentity_X: Neighboring cells that are DETECTED but NOT CONNECTED TO
     - Pay extremely close attention to field names and follow the O-RAN Network Metrics Guide precisely
-    - Ensure you report ALL matching users, not just a sample
+    - ALL metrics in the O-RAN Metrics Guide should be considered for filtering based on the query
     
     Be thorough in your analysis and provide specific data from the O-RAN logs that directly
     answers the query. Include relevant metrics and their values.
   expected_output: >
    Detailed findings from the O-RAN data, including specific metrics,
     values, and any relevant context about the network performance.
+    Ensure you report ALL matching findings, NOT just a sample
   agent: data_analyst
   context: [analyze_query_task]
 

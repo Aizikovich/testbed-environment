@@ -38,7 +38,8 @@ data_analyst:
     - Data is collected in timestamped steps (step field)
     - Signal quality affects user experience and network efficiency
 
-    # O-RAN Network Metrics Guide
+    # O-RAN Network Metrics Guide:
+    Every metric below is equally important for analysis and should be used for filtering data based on query requirements:
 
     ## Cell Metrics:
     - availPrbDl: Available PRBs (Physical Resource Block) for downlink (lower values indicate higher cell load/utilization)
@@ -63,8 +64,6 @@ data_analyst:
     # IMPORTANT DISTINCTION:
     - nrCellIdentity: The cell ID that the UE is ACTIVELY CONNECTED TO
     - nbCellIdentity_X: Neighboring cells that are DETECTED but NOT CONNECTED TO
-    - When asked "which users are connected to cell X", ONLY look at the nrCellIdentity field
-    - NEVER use nbCellIdentity fields to determine cell connections
 
     # Key Relationships in Network Data
     - UEs can detect neighboring cells (nbCellIdentity_X) but are only connected to one primary cell (nrCellIdentity)

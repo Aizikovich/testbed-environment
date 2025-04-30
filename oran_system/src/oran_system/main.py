@@ -2,6 +2,8 @@
 import warnings
 import os
 from termcolor import cprint
+from langtrace_python_sdk import langtrace
+langtrace.init(api_key = os.getenv('LANGTRACE_KEY'),api_host = "http://3.79.247.29:3000/api/trace")
 from oran_system.crew import OranSystem
 
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
@@ -32,7 +34,7 @@ def run(query=None):
         cprint("\nAnalyzing your query...", 'cyan')
 
         inputs = {
-            'query': query if query is not None else "Which users have poor signal quality in step 3?"
+            'query': query 
         } 
 
         response = OranSystem().crew().kickoff(inputs=inputs)
@@ -55,7 +57,6 @@ def print_header():
     """
     cprint(header, 'cyan', attrs=['bold'])
     print("Type 'exit' to quit, 'help' for example queries")
-    print("Default query: \"Which users have poor signal quality in step 3?\"")
     print("Please enter your O-RAN network query:")
 
 
@@ -67,8 +68,7 @@ def print_help():
         "Which users are connected to cell 2 in step 3?",
         "Find users with poor signal quality in step 3",
         "Are there any users with anomalies in step 3?",
-        "Which cell has the best coverage in step 3?",
-        "Are there any users at risk of handover in step 3?"
+        "Which cell has the best coverage in step 3?"
     ]
     for example in examples:
         cprint(f"  • {example}", 'yellow')
