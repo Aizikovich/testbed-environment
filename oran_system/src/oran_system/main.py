@@ -2,8 +2,6 @@
 import warnings
 import os
 from termcolor import cprint
-from langtrace_python_sdk import langtrace
-langtrace.init(api_key = os.getenv('LANGTRACE_KEY'),api_host = "http://3.79.247.29:3000/api/trace")
 from oran_system.crew import OranSystem
 
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
