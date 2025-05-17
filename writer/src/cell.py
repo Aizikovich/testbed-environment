@@ -114,7 +114,7 @@ class DATABASE(object):
 
     def config(self):
         cfg = ConfigParser()
-        cfg.read('qp_config.ini')
+        cfg.read('config.ini')
         for section in cfg.sections():
             if section == 'influxdb':
                 self.host = cfg.get(section, "host")
