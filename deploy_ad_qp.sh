@@ -3,7 +3,7 @@
 echo "========> Clone xapps"
 cd ~
 git clone https://github.com/Aizikovich/ric-app-ad.git
-git clone https://github.com/Aizikovich/ric-app-ad.git
+git clone https://github.com/Aizikovich/ric-app-qp.git
 
 
 
@@ -19,6 +19,11 @@ cd ~/ric-app-qp
 docker build -t 127.0.0.1:5000/ric-app-qp:1.0 .
 docker push 127.0.0.1:5000/ric-app-qp:1.0
 sleep 1
+
+cd ~/ric-app-ts
+# Build and push xapp ts
+docker build -t 127.0.0.1:5000/ric-app-ts:1.0 .
+docker push 127.0.0.1:5000/ric-app-ts:1.0
 # prepare chartmuseum and dms_cli
 cd ~
 chmod 777 $(pwd)/charts
@@ -39,5 +44,9 @@ dms_cli install --xapp_chart_name=qp --version=0.0.5 --namespace=ricxapp
 
 echo "========> install xapp qp"
 sleep 1
+
+# install ts
+dms_cli onboard --config_file_path=ric-app-ts/xapp-descriptor/config-file.json --shcema_file_path=ric-app-ts/xapp-descriptor/schema.json
+dms_cli install --xapp_chart_name=trafficxapp --version=1.2.5 --namespace=ricxapp
 
 kubectl get pods -n ricxapp
